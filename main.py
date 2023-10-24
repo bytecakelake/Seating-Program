@@ -2,7 +2,7 @@
 
 '''
 
-자리배치 프로그램(Seating chart Program)
+Seating chart Program
 sub functions:
     1.load "person name","prefer option" from xlsx file
     2.Preprocessing preference options
@@ -52,11 +52,11 @@ def load_data(path):
     return data
 
 #Convert Excel coordinates (A3,B,3....) to 2D coordinates ([[1, 3], [2, 0], [0, 3]) with this formula
-#Example of input data: [['권진향', 3], ['김문수', 'A'], ['명서윤', 'c5'], ['문성준', None], ['박지성', 'AB,33'], ['박채영', 'WB2,abD45'], ['박혜원', 'A,B,D'], ['성민정', 'B4,D5']]
+#Example of input data: [['권진??, 3], ['김문수', 'A'], ['명서??, 'c5'], ['문성준', None], ['박�???, 'AB,33'], ['박채??, 'WB2,abD45'], ['박혜??, 'A,B,D'], ['?��???, 'B4,D5']]
 def preprocessing(data):
     '''
     Convert Excel coordinates (A3,B,3....) to 2D coordinates ([[1, 3], [2, 0], [0, 3]]) with this formula
-    Example of input data: [['권진향', 3], ['김문수', 'A'], ['명서윤', 'c5'], ['문성준', None], ['박지성', 'AB,33'], ['박채영', 'WB2,abD45'], ['박혜원', 'A,B,D'], ['성민정', 'B4,D5']]
+    Example of input data: [['권진??, 3], ['김문수', 'A'], ['명서??, 'c5'], ['문성준', None], ['박�???, 'AB,33'], ['박채??, 'WB2,abD45'], ['박혜??, 'A,B,D'], ['?��???, 'B4,D5']]
     '''
     for i in range(len(data)):
         if data[i][1] is None:
