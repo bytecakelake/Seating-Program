@@ -8,7 +8,6 @@ __pycache__/
 .vs/
 *.pyproj
 *.sln
-*.xlsx
 
 # Distribution / packaging
 .Python
