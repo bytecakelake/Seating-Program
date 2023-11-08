@@ -29,8 +29,9 @@ main function:
 
 # import module zone
 import sys
-import openpyxl
-
+from tabnanny import check
+import openpyxl as xl
+import random
 
 
 #  sub functions zone
@@ -40,7 +41,7 @@ def load_data(path):
     '''
     load "person name","prefer option" from xlsx file
     '''
-    wb = openpyxl.load_workbook(path)
+    wb = xl.load_workbook(path)
     sheet = wb.active
     data = []
     i = 1
@@ -51,18 +52,17 @@ def load_data(path):
         i += 1
     return data
 
-#Convert Excel coordinates (A3,B,3....) to 2D coordinates ([[1, 3], [2, 0], [0, 3]) with this formula
-#Example of input data: [['권진??, 3], ['김문수', 'A'], ['명서??, 'c5'], ['문성준', None], ['박�???, 'AB,33'], ['박채??, 'WB2,abD45'], ['박혜??, 'A,B,D'], ['?��???, 'B4,D5']]
+
+
 def preprocessing(data):
     '''
     Convert Excel coordinates (A3,B,3....) to 2D coordinates ([[1, 3], [2, 0], [0, 3]]) with this formula
-    Example of input data: [['권진??, 3], ['김문수', 'A'], ['명서??, 'c5'], ['문성준', None], ['박�???, 'AB,33'], ['박채??, 'WB2,abD45'], ['박혜??, 'A,B,D'], ['?��???, 'B4,D5']]
     '''
     for i in range(len(data)):
         if data[i][1] is None:
             print('data:', data[i])
             print(['N/A'])
-            data[i][1] = [0, 0]
+            data[i][1] = [[0, 0]]
             print('convert coordinates: N/A --> [0, 0]')
         else:
             if isinstance(data[i][1], int):
@@ -88,18 +88,126 @@ def preprocessing(data):
                 else:
                     row = 0
                 print('convert coordinates:', coord, '-->', [col, row])
-
+                
                 new_coords.append([col, row])
             data[i][1] = new_coords
-        print(i, '\n')
+        print('number:', i, '\n')
     return data
 
 
 
 
-# main function zone
+def generate(data):
+    '''
+    generate random seating chart
+    '''
+    
+    #make empty seating chart
+    chart = [i for i in data]
+    random.shuffle(chart)
+    chart= [chart[i:i+width] for i in range(0, len(chart), width)]
+    return chart
+
+
+def option_check(chart):
+    '''
+    Make sure your preferred option has the correct placeholder
+    '''
+    print('\noption check')
+    for row in range(len(chart)):
+        for col in range(len(chart[row])):
+            print("=====================<<", "\nmatrix:", [col+1, row+1], '/', 'name:', chart[row][col][0])
+            detect = 0
+            for option in chart[row][col][1]:
+                print('option:', option, '/', 'check:', end=' ')
+                if option[0] == 0 and option[1] == 0:
+                    detect += 1
+                    print('True')
+                elif option[0] == col+1 and option[1] == row+1:
+                    detect += 1
+                    print('True')
+                elif option[0] == col+1 and option[1] == 0:
+                    detect += 1
+                    print('True')
+                elif option[0] == 0 and option[1] == row+1:
+                    detect += 1
+                    print('True')
+                else:
+                    print('Fales')
+            if detect == 0:
+                print("=====================<<", '\noption check fail')
+                return False
+                
+    print("=====================<<", '\noption check success')
+    return True
+                    
+
+
+            
+                
+        
+    
+
+
 if __name__ == '__main__':
-    a = load_data('test.xlsx')
-    print(a)
-    b = preprocessing(a)
-    print(b)
+    print(sys.argv)
+    if len(sys.argv) == 1 and sys.argv[1] == '--help':
+        #print CLI option
+        print('''CLI options:
+    >>Required options <<==========================
+        -w, --width : set width of seating chart
+        -h, --height : set height of seating chart
+        -i, --input : set input xlsx file path
+    >>Non-required options  <<=====================
+        -o, --output : set output xlsx file path
+        -s, --skip : all option skip
+    ===================<<==========================
+''')
+    elif len(sys.argv) > 2:
+        for i in range(1, len(sys.argv)):
+
+            if sys.argv[i] == '-w' or sys.argv[i] == '--width':
+                width = int(sys.argv[i+1])
+            if sys.argv[i] == '-h' or sys.argv[i] == '--height':
+                height = int(sys.argv[i+1])
+            if sys.argv[i] == '-i' or sys.argv[i] == '--input':
+                input_path = sys.argv[i+1]
+            if sys.argv[i] == '-o' or sys.argv[i] == '--output':
+                output_path = sys.argv[i+1]
+            skip = False
+            if sys.argv[i] == '-s' or sys.argv[i] == '--skip':
+                skip = True
+        
+        # main function zone
+        xlsx = load_data(input_path)
+        data = preprocessing(xlsx)
+        for person in xlsx:
+            #print('=====================>>')
+            print('name:', person[0], '/ options:', person[1])
+        check = input('continew? (y/n):')
+        if len(data) < width * height and check == 'y':
+            num = 0
+            loop = False
+            while loop == False:
+                num += 1
+                
+                print('generate chart')
+                print('#######################')
+                chart = generate(data)
+                for row in chart:
+                    for person in row:
+                        print(person[0], end=' ')
+                    print('')
+                print('#######################')
+                loop = option_check(chart)
+                if skip == True:
+                    loop = True
+                print('try_count:', num)
+                print('\n\n')
+            #print('saving chart')
+
+    else:
+        print('people numder is too big')
+
+    
+        
