@@ -29,10 +29,9 @@ main function:
 
 # import module zone
 import sys
-from tabnanny import check
 import openpyxl as xl
 import random
-
+print = sys.stdout.write
 
 #  sub functions zone
 
@@ -59,39 +58,37 @@ def preprocessing(data):
     Convert Excel coordinates (A3,B,3....) to 2D coordinates ([[1, 3], [2, 0], [0, 3]]) with this formula
     '''
     for i in range(len(data)):
+        if log: print(f'\npreprocessing - "{data[i][0]}" \n=====================>>')
         if data[i][1] is None:
-            print('data:', data[i])
-            print(['N/A'])
             data[i][1] = [[0, 0]]
-            print('convert coordinates: N/A --> [0, 0]')
+            if log: print(f"\noptions: ['N/A'] \nconvert to coordinates: N/A --> [0, 0]")
         else:
             if isinstance(data[i][1], int):
                 data[i][1] = str(data[i][1])
-            print('data:', data[i])
             coordinates = data[i][1].split(',')
             new_coords = []
-            print(coordinates)
+            if log: print(f'\noptions: {coordinates}')
             for coord in coordinates:
                 coord = coord.strip()
-                row = ''
-                col = 0
+                y = ''
+                x = 0
                 for char in coord:
                     if char.isalpha():
-                        if col != '':
-                            col = col * 26 + (ord(char.upper()) - 64)
+                        if x != '':
+                            x = x * 26 + (ord(char.upper()) - 64)
                         else:
-                            col = 0
+                            x = 0
                     elif char.isdigit():
-                        row += char
-                if row != '':
-                    row = int(row)
+                        y += char
+                if y != '':
+                    y = int(y)
                 else:
-                    row = 0
-                print('convert coordinates:', coord, '-->', [col, row])
+                    y = 0
+                if log: print(f'\nconvert to coordinates: {coord} --> {[x, y]}')
                 
-                new_coords.append([col, row])
+                new_coords.append([x, y])
             data[i][1] = new_coords
-        print('number:', i, '\n')
+        if log: print(f'\n=====================>>\n{i}\n')
     return data
 
 
@@ -104,7 +101,9 @@ def generate(data):
     
     #make empty seating chart
     chart = [i for i in data]
+
     random.shuffle(chart)
+
     chart= [chart[i:i+width] for i in range(0, len(chart), width)]
     return chart
 
@@ -113,44 +112,41 @@ def option_check(chart):
     '''
     Make sure your preferred option has the correct placeholder
     '''
-    print('\noption check')
-    for row in range(len(chart)):
-        for col in range(len(chart[row])):
-            print("=====================<<", "\nmatrix:", [col+1, row+1], '/', 'name:', chart[row][col][0])
+    if log: print('\noption check\n=====================>>')
+    for y, row in enumerate(chart):
+        for x, person in enumerate(row):
+            if log: print(f'\n//matrix: {[x+1, y+1]} / name: {person[0]}')
             detect = 0
-            for option in chart[row][col][1]:
-                print('option:', option, '/', 'check:', end=' ')
+            for option in person[1]:
+                if log: print(f'\n    option: {option} / check: ')
                 if option[0] == 0 and option[1] == 0:
                     detect += 1
-                    print('True')
-                elif option[0] == col+1 and option[1] == row+1:
+                    if log: print('True')
+                if option[0] == x+1  and option[1] == 0:
                     detect += 1
-                    print('True')
-                elif option[0] == col+1 and option[1] == 0:
+                    if log: print('True')
+                if option[0] == 0 and option[1] == y+1:
                     detect += 1
-                    print('True')
-                elif option[0] == 0 and option[1] == row+1:
+                    if log: print('True')
+                if option[0] == x+1 and option[1] == y+1:
                     detect += 1
-                    print('True')
-                else:
-                    print('Fales')
+                    if log: print('True')
+                #else:
+                #    if log: print('Fales')
             if detect == 0:
-                print("=====================<<", '\noption check fail')
+                if log: print("\n=====================<< \noption check fail")
                 return False
                 
-    print("=====================<<", '\noption check success')
+    if log: print("\n=====================<< \noption check success")
     return True
                     
 
-
-            
                 
         
     
 
 
 if __name__ == '__main__':
-    print(sys.argv)
     if len(sys.argv) == 1 and sys.argv[1] == '--help':
         #print CLI option
         print('''CLI options:
@@ -161,6 +157,7 @@ if __name__ == '__main__':
     >>Non-required options  <<=====================
         -o, --output : set output xlsx file path
         -s, --skip : all option skip
+        --log      
     ===================<<==========================
 ''')
     elif len(sys.argv) > 2:
@@ -177,37 +174,45 @@ if __name__ == '__main__':
             skip = False
             if sys.argv[i] == '-s' or sys.argv[i] == '--skip':
                 skip = True
-        
+        if sys.argv.count('--loging') > 0: log = True
+        else: log = False
         # main function zone
         xlsx = load_data(input_path)
         data = preprocessing(xlsx)
+        print('\ncheck input\n~~~~~~~~~~~~~~~~~~~~')
         for person in xlsx:
-            #print('=====================>>')
-            print('name:', person[0], '/ options:', person[1])
-        check = input('continew? (y/n):')
-        if len(data) < width * height and check == 'y':
+            print(f'\nname: {person[0]} / options: {person[1]}')
+        print('\n~~~~~~~~~~~~~~~~~~~~\n\n')
+        check = input('\ncontinew? (y/n):')
+        if len(data) <= width * height and check == 'y':
             num = 0
             loop = False
             while loop == False:
                 num += 1
                 
-                print('generate chart')
-                print('#######################')
+                if log: print('\ngenerate chart\n~~~~~~~~~~~~~~~~~~~~~~~\n')
                 chart = generate(data)
-                for row in chart:
-                    for person in row:
-                        print(person[0], end=' ')
-                    print('')
-                print('#######################')
+                if log:
+                    for row in chart:
+                        for person in row:
+                            print(f'{person[0]} ')
+                        print('\n')
+                if log: print('~~~~~~~~~~~~~~~~~~~~~~~\n')
                 loop = option_check(chart)
                 if skip == True:
                     loop = True
-                print('try_count:', num)
-                print('\n\n')
-            #print('saving chart')
-
+                if log: print(f'\n{num}\n\n')
+                #if not log:print(f'\r{num}')
+            #if log: print('saving chart')
+            print('\ngenerate chart\n~~~~~~~~~~~~~~~~~~~~~~~\n')
+            #chart = generate(data)
+            for row in chart:
+                for person in row:
+                    print(f'{person[0]} ')
+                print('\n')
+            print('~~~~~~~~~~~~~~~~~~~~~~~\n')
     else:
-        print('people numder is too big')
+        if log: print('\npeople numder is too big')
 
     
         
